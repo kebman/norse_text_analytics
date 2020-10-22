@@ -1,2 +1,2 @@
-# norse_text_analytics
-Programmatic Analytics of Norse Texts
+# Norse Text Analytics
+Some programmatic analytics for Old Norse texts.
