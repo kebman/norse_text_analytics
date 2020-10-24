@@ -1,2 +1,3 @@
 # Norse Text Analytics
-Some programmatic analytics for Old Norse texts.
+Some programmatic treatent of Old Norse texts.
+Just a hobby project. Perhaps it may also be of use to others.
