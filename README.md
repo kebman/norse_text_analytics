@@ -12,6 +12,10 @@ Scrape the Old Norse version of Hávamál from Heimskringla.no,  and print the v
 
 Read the JSON-prepared version of Hávamál in `data/havamal1.json` and print the first strophe in Verse I.
 
+### `numWordsHávamál.py`
+
+Simple count of how many times the same word occurr in Hávamál.
+
 ### `data/Hávamál1.json`
 
 A JSON-structured file containing Hávamál. Perhaps there are better ways to structure it, but at least in theory it makes the text a little easier to work with, line by line, or verse by verse, including access to metadata such as the transliterator.
