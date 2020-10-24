@@ -13,7 +13,7 @@ def stripLine(l):
 		words = [word.replace(strip[i], '').lower() for word in words]
 	return words
 
-file = Path('../data/havamal1.json')
+file = Path('../data/Hávamál1.json')
 wordsl = []
 
 try:
