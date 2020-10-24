@@ -14,7 +14,7 @@ Read the JSON-prepared version of Hávamál in `data/havamal1.json` and print th
 
 ### `numWordsHávamál.py`
 
-Simple count of how many times the same word occurr in Hávamál.
+Simple count of how many times the same word occurrs in Hávamál.
 
 ### `data/Hávamál1.json`
 
