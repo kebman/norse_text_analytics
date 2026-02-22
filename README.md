@@ -2,6 +2,8 @@
 
 Norse Text Analytics is a graph-first Neo4j system for tracking word attestations through sources over time. The core model separates `Token -> Form -> Lemma`, preserving textual evidence while layering interpretation (morphology, claims, lineage). Neo4j is canonical; JSON is used as import/export input. The goal is provenance-rich, date-aware traceability of words across historical sources and into modern branches such as Bokmål and Nynorsk.
 
+The project follows a "serious play" approach: exploratory ingest and iterative modeling are encouraged, but every step should remain traceable and upgradeable to publish-grade scholarship. See [Serious Play](docs/vision/serious-play.md).
+
 ## What You Can Do
 
 - Ingest a source into the graph (currently `data/Hávamál1.json`).
@@ -39,6 +41,25 @@ Sanity check in Neo4j Browser (`http://localhost:7474`) or `cypher-shell`:
 ```cypher
 MATCH (e:Edition {edition_id: 'havamal_gudni_jonsson_print'})-[:HAS_SEGMENT]->(s:Segment)
 RETURN count(s) AS segments;
+```
+
+## Quick Ingest Plaintext
+
+```bash
+python3 scripts/ingest_plaintext.py \
+  --path data/sample.txt \
+  --work-id sample_work \
+  --edition-id sample_plaintext_v1 \
+  --source-label "Sample Plaintext" \
+  --language-stage on \
+  --segment line
+```
+
+```cypher
+MATCH (:Edition {edition_id: "sample_plaintext_v1"})-[:HAS_SEGMENT]->(:Segment)-[:HAS_TOKEN]->(t:Token)
+RETURN t.surface AS surface, count(*) AS freq
+ORDER BY freq DESC, surface ASC
+LIMIT 20;
 ```
 
 ## Repo Layout
