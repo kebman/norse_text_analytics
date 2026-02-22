@@ -12,7 +12,8 @@ Related docs: [Glossary](glossary.md), [Invariants](invariants.md), [IDs and Ref
 - `Form`: `form_id`, `orthography`, `language`
 - `Lemma`: `lemma_id`, `headword`, `language`, `pos`
 - `Sense`: `sense_id`, `gloss`, `definition`
-- `MorphAnalysis`: `analysis_id`, `analyzer`, `confidence`, `pos`, `is_ambiguous`
+- `MorphAnalysis`: `analysis_id`, `analyzer`, `analyzer_version`, `confidence`, `pos`, `is_ambiguous`, `created_at`, `supersedes`, `is_active`
+- `Analyzer`: `analyzer_id`, `name`, `version`, `description`, `author`, `created_at`
 - `Feature`: `key`, `value`, `lemma_guess`
 - `Etymon`: `etymon_id`, `form`, `language`, `period`
 - `CognateSet`: `set_id`, `label`
@@ -27,7 +28,8 @@ Related docs: [Glossary](glossary.md), [Invariants](invariants.md), [IDs and Ref
 - `(:Segment)-[:HAS_TOKEN]->(:Token)`
 - `(:Token)-[:INSTANCE_OF_FORM]->(:Form)`
 - `(:Token)-[:HAS_ANALYSIS]->(:MorphAnalysis)`
-- `(:Form)-[:REALIZES]->(:Lemma)`
+- `(:MorphAnalysis)-[:PRODUCED_BY]->(:Analyzer)`
+- `(:Form)-[:REALIZES {is_active, assigned_by, confidence, created_at}]->(:Lemma)`
 - `(:MorphAnalysis)-[:ANALYZES_AS]->(:Lemma)` (optional)
 - `(:MorphAnalysis)-[:HAS_FEATURE]->(:Feature)`
 - `(:Form)-[:ORTHOGRAPHIC_VARIANT_OF {type}]->(:Form)`
@@ -48,12 +50,34 @@ Related docs: [Glossary](glossary.md), [Invariants](invariants.md), [IDs and Ref
 - `ORTHOGRAPHIC_VARIANT_OF` (Form-level): spelling/normalization variation between forms; not a lemma lineage edge.
 - `NORMALIZED_TO` (Token/Form-level): ingest normalization trace from token evidence to normalized form.
 
+## Form -> Lemma Mapping Semantics
+
+- `REALIZES` is a versioned interpretation edge from spelling/form evidence to lexeme abstraction.
+- `REALIZES` may include:
+  - `is_active` (`bool`): active mapping flag for current interpretation queries.
+  - `assigned_by` (`string`): analyzer/project/person responsible for assignment.
+  - `confidence` (`float`): confidence score for assignment.
+  - `created_at` (`datetime`): assignment creation timestamp.
+- Mapping updates are non-destructive: create a new active edge and mark previous edge inactive instead of deleting history.
+- Optional `Claim` nodes can document rationale for mapping changes.
+
 ## Token -> Form -> Lemma Separation
 
 - `Token` is immutable textual evidence at a location.
 - `Form` groups orthographic/normalization variants across tokens.
 - `Lemma` is lexeme abstraction and can later diverge from `Form` when true lemmatization is added.
 - `MorphAnalysis` is an interpretation layer attached to tokens; multiple analyses can coexist for different analyzers.
+- `MorphAnalysis.analyzer` is a quick lookup string kept on the analysis node for simple filtering.
+- `Analyzer` is the metadata anchor for tool/project provenance (name, version, author, description).
+
+## MorphAnalysis Evolution Rules
+
+- `analysis_id` is deterministic: `<token_id>:<analyzer>`.
+- `MorphAnalysis` is immutable evidence of interpretation output.
+- Default conventions: `confidence=0.0`, `is_ambiguous=false`, `is_active=true`, `created_at=datetime()` on create.
+- Do not update an existing `MorphAnalysis` record except `is_active=false` when it is superseded.
+- New analyzer version creates a new `MorphAnalysis` node (new `analysis_id`) rather than overwriting old output.
+- If replacing an analysis, set `supersedes=<old_analysis_id>` on the new node and set old node `is_active=false`.
 
 ## MVP vs Planned Full Model
 

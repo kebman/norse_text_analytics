@@ -9,6 +9,7 @@ Related docs: [Schema](schema.md), [Invariants](invariants.md), [IDs and Referen
 - `Form`: normalized orthographic type for grouping token surfaces.
 - `Lemma`: lexeme-level dictionary entry (headword-level abstraction).
 - `MorphAnalysis`: analyzer-specific grammatical interpretation attached to a token.
+- `Analyzer`: metadata record for an analysis producer (tool/project/version/author); linked from `MorphAnalysis` via `PRODUCED_BY`.
 - `Feature`: one categorical morphology feature/value pair (example: `case=Nom`).
 - `Sense`: meaning-level subdivision of a lemma.
 - `Claim`: reified scholarly assertion with confidence/status.

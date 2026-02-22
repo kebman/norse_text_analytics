@@ -16,14 +16,29 @@ Why: reproducible analytics and safe reruns without identity drift.
 - `Token -> INSTANCE_OF_FORM -> Form` is mandatory for ingested tokens.
 Why: supports normalization and frequency analysis without losing raw evidence.
 
-- `Token -> HAS_ANALYSIS -> MorphAnalysis` may have multiple edges per token, but one analysis per analyzer id (`analysis_id = token_id:analyzer`).
-Why: interpretations evolve and analyzers disagree; evidence should not be overwritten.
+- `Token` nodes are immutable evidence.
+Why: textual attestations must remain stable across re-analysis.
 
-- Analyses are layered and replaceable; evidence nodes (`Token`, `Segment`) are not rewritten for new interpretation runs.
-Why: keeps provenance stable while allowing incremental model improvement.
+- `MorphAnalysis` nodes are append-only interpretation records.
+Why: enables versioned analyzer history without destructive updates.
 
-- If analyzer differs, create a new `MorphAnalysis`; do not mutate prior analyzer outputs into a single record.
-Why: preserves reproducibility and supports side-by-side evaluation.
+- At most one active `MorphAnalysis` should exist per `(Token, analyzer)` at a time.
+Why: query semantics stay predictable while still preserving historical analyses.
+
+- Historical `MorphAnalysis` nodes must remain queryable after supersession.
+Why: auditing and reproducibility require access to old analyses.
+
+- `Token -> HAS_ANALYSIS -> MorphAnalysis` may have multiple edges per token; analysis identity uses `analysis_id = token_id:analyzer`.
+Why: supports multi-analyzer layering while keeping deterministic IDs.
+
+- `Form -> REALIZES -> Lemma` mappings are non-destructive and versioned at the relationship level.
+Why: lemma assignments can change with scholarship, but prior interpretations must remain auditable.
+
+- When a `Form`-to-`Lemma` interpretation changes, do not delete old `REALIZES` edges.
+Why: deleting history destroys historiography and prevents reproducible interpretation lineage.
+
+- Update pattern for changed mapping: add new `REALIZES {is_active:true}` edge and set prior edge `is_active=false`; optionally attach a `Claim` explaining the change.
+Why: keeps one current mapping while preserving previous scholarly states with provenance.
 
 - Interpretations are layered on top of evidence.
 Why: avoids rewriting evidence when analysis changes.
