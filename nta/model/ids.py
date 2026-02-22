@@ -49,8 +49,8 @@ def sense_id(lemma: str, sense_key: str) -> str:
     return f"sense:{_digest(lemma, sense_key)}"
 
 
-def morph_analysis_id(target_id: str, analyzer: str, features: str) -> str:
-    return f"morph:{_digest(target_id, analyzer, features)}"
+def morph_analysis_id(token_id: str, analyzer: str) -> str:
+    return f"{token_id}:{_normalize(analyzer)}"
 
 
 def etymon_id(language: str, form: str, period: str = "") -> str:

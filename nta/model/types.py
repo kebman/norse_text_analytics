@@ -51,6 +51,22 @@ class Lemma:
 
 
 @dataclass(slots=True, frozen=True)
+class MorphAnalysis:
+    analysis_id: str
+    analyzer: str
+    confidence: float
+    pos: str
+    is_ambiguous: bool
+
+
+@dataclass(slots=True, frozen=True)
+class Feature:
+    key: str
+    value: str
+    lemma_guess: str | None = None
+
+
+@dataclass(slots=True, frozen=True)
 class Claim:
     claim_id: str
     type: str
