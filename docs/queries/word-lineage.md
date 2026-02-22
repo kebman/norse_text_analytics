@@ -13,8 +13,8 @@ MATCH (t:Token)-[:INSTANCE_OF_FORM]->(f:Form)
 MATCH (s:Segment)-[:HAS_TOKEN]->(t)
 MATCH (e:Edition)-[:HAS_SEGMENT]->(s)
 WHERE f.orthography = $orthography OR t.normalized = $orthography
-RETURN e.edition_id, s.ref, s.text, t.surface, t.position
-ORDER BY e.edition_id, s.ref, t.position;
+RETURN e.edition_id, e.source_label, e.date_start, e.date_end, s.ref, s.text, t.surface, t.position
+ORDER BY COALESCE(e.date_start, 999999), e.source_label, s.ref, t.position;
 ```
 
 ## B. Variant grouping by period (claim-based / future-ready)
@@ -27,6 +27,21 @@ ORDER BY l.headword;
 ```
 
 Use date fields from `Edition` or `Source.year` when available. If dates are missing, treat results as undated and do not infer chronology.
+
+## B2. Date fallback variant for undated editions
+
+When dates are null, filter by `source_label` to keep a stable grouping:
+
+```cypher
+MATCH (t:Token)-[:INSTANCE_OF_FORM]->(f:Form)
+MATCH (s:Segment)-[:HAS_TOKEN]->(t)
+MATCH (e:Edition)-[:HAS_SEGMENT]->(s)
+WHERE (f.orthography = $orthography OR t.normalized = $orthography)
+  AND e.date_start IS NULL
+  AND e.source_label CONTAINS $source_label
+RETURN e.edition_id, e.source_label, s.ref, s.text, t.surface, t.position
+ORDER BY e.source_label, s.ref, t.position;
+```
 
 ## C. Branching to Bokmål / Nynorsk
 
