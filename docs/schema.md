@@ -36,9 +36,17 @@ Related docs: [Glossary](glossary.md), [Invariants](invariants.md), [IDs and Ref
 - `(:Claim)-[:ASSERTS]->(:Lemma|:Etymon)`
 - `(:Claim)-[:CONTRADICTS]->(:Claim)`
 - `(:Lemma)-[:DERIVES_FROM]->(:Etymon|:Lemma)`
+- `(:Lemma)-[:BORROWED_FROM]->(:Lemma|:Etymon)`
 - `(:Lemma)-[:IN_COGNATE_SET]->(:CognateSet)`
 - `(:Edition)-[:TRANSLATES]->(:Edition)`
 - `(:Segment)-[:ALIGNED_TO {method, confidence}]->(:Segment)`
+
+## Lemma Branching Semantics
+
+- `DERIVES_FROM` (Lemma-level): historical development lineage, including transitions across language stages.
+- `BORROWED_FROM` (Lemma-level): lexical borrowing relationship, distinct from inherited development.
+- `ORTHOGRAPHIC_VARIANT_OF` (Form-level): spelling/normalization variation between forms; not a lemma lineage edge.
+- `NORMALIZED_TO` (Token/Form-level): ingest normalization trace from token evidence to normalized form.
 
 ## Token -> Form -> Lemma Separation
 

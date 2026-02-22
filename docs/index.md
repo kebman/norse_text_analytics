@@ -14,5 +14,6 @@ Primary documentation hub for architecture, ingest, schema, and query usage.
 - [Hávamál Source Notes](ingest/havamal-source-notes.md)
 - [Query Cookbook](queries/query-cookbook.md)
 - [Word Lineage Acceptance Queries](queries/word-lineage.md)
+- [Branching Queries](queries/branching.md)
 - [Morphology Queries](queries/morphology.md)
 - [Sprint 1 Dev Log](dev-logs/dev-log_2026-02-22_sprint-1_graph-spine-and-first-ingest.md)
