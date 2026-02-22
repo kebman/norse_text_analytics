@@ -110,16 +110,24 @@ class Neo4jRepository:
         self._execute(
             """
             MERGE (m:MorphAnalysis {analysis_id: $analysis_id})
-            SET m.analyzer = $analyzer,
-                m.confidence = $confidence,
-                m.pos = $pos,
-                m.is_ambiguous = $is_ambiguous
+            ON CREATE SET m.analyzer = $analyzer,
+                          m.analyzer_version = $analyzer_version,
+                          m.confidence = $confidence,
+                          m.pos = $pos,
+                          m.is_ambiguous = $is_ambiguous,
+                          m.created_at = coalesce($created_at, datetime()),
+                          m.supersedes = $supersedes,
+                          m.is_active = $is_active
             """,
             analysis_id=analysis.analysis_id,
             analyzer=analysis.analyzer,
+            analyzer_version=analysis.analyzer_version,
             confidence=analysis.confidence,
             pos=analysis.pos,
             is_ambiguous=analysis.is_ambiguous,
+            created_at=analysis.created_at,
+            supersedes=analysis.supersedes,
+            is_active=analysis.is_active,
         )
 
     def upsert_feature(self, feature: Feature) -> None:

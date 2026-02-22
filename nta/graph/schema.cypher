@@ -46,6 +46,10 @@ CREATE CONSTRAINT morph_analysis_id_unique IF NOT EXISTS
 FOR (m:MorphAnalysis)
 REQUIRE m.analysis_id IS UNIQUE;
 
+CREATE CONSTRAINT analyzer_analyzer_id_unique IF NOT EXISTS
+FOR (a:Analyzer)
+REQUIRE a.analyzer_id IS UNIQUE;
+
 CREATE CONSTRAINT feature_key_value_unique IF NOT EXISTS
 FOR (f:Feature)
 REQUIRE (f.key, f.value) IS UNIQUE;
@@ -106,6 +110,22 @@ CREATE INDEX morph_analysis_pos_idx IF NOT EXISTS
 FOR (m:MorphAnalysis)
 ON (m.pos);
 
+CREATE INDEX morph_analysis_analyzer_idx IF NOT EXISTS
+FOR (m:MorphAnalysis)
+ON (m.analyzer);
+
+CREATE INDEX morph_analysis_is_active_idx IF NOT EXISTS
+FOR (m:MorphAnalysis)
+ON (m.is_active);
+
+CREATE INDEX morph_analysis_created_at_idx IF NOT EXISTS
+FOR (m:MorphAnalysis)
+ON (m.created_at);
+
+CREATE INDEX analyzer_name_idx IF NOT EXISTS
+FOR (a:Analyzer)
+ON (a.name);
+
 CREATE INDEX feature_key_idx IF NOT EXISTS
 FOR (f:Feature)
 ON (f.key);
@@ -137,3 +157,9 @@ ON (r.method);
 CREATE INDEX aligned_to_confidence_idx IF NOT EXISTS
 FOR ()-[r:ALIGNED_TO]-()
 ON (r.confidence);
+
+// REALIZES relationship properties support non-destructive Form->Lemma remapping.
+// Expected properties: is_active, assigned_by, confidence, created_at.
+CREATE INDEX realizes_is_active_idx IF NOT EXISTS
+FOR ()-[r:REALIZES]-()
+ON (r.is_active);
