@@ -16,3 +16,4 @@ Related docs: [Schema](schema.md), [Invariants](invariants.md), [IDs and Referen
 - `Source`: bibliographic/source record supporting claims.
 - `Etymon`: etymological origin form/entity.
 - `CognateSet`: grouping of historically related forms/lemmas.
+- `language_stage`: controlled stage code on `Edition`/`Lemma` (for example `on`, `own`, `nb`, `nn`) used for temporal-linguistic grouping.
