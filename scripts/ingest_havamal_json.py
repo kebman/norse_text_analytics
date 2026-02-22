@@ -15,6 +15,13 @@ if str(REPO_ROOT) not in sys.path:
 WORK_ID = "havamal"
 EDITION_ID = "havamal_gudni_jonsson_print"
 LANGUAGE = "Old Norse"
+SOURCE_LABEL = "Sæmundar-Edda: Hávamál"
+DATE_START = 900
+DATE_END = 1100
+DATE_APPROX = True
+DATE_NOTE = "placeholder; revise later"
+PROVENANCE = "Guðni Jónsson print"
+NORMALIZATION_POLICY = "punct_strip_whitespace_collapse_v0"
 SURROUNDING_PUNCT = " \t\n\r.,;:!?\"'()[]{}<>«»„“”‘’`´…—-"
 
 
@@ -88,7 +95,14 @@ def ingest(input_path: Path) -> tuple[int, int]:
                 SET e.title = $title,
                     e.cover = $cover,
                     e.writer = $writer,
-                    e.language = $language
+                    e.language = $language,
+                    e.normalization_policy = $normalization_policy,
+                    e.source_label = $source_label,
+                    e.date_start = $date_start,
+                    e.date_end = $date_end,
+                    e.date_approx = $date_approx,
+                    e.date_note = $date_note,
+                    e.provenance = $provenance
                 MERGE (w)-[:HAS_EDITION]->(e)
                 """,
                 work_id=WORK_ID,
@@ -97,6 +111,13 @@ def ingest(input_path: Path) -> tuple[int, int]:
                 cover=cover,
                 writer=writer,
                 language=LANGUAGE,
+                normalization_policy=NORMALIZATION_POLICY,
+                source_label=SOURCE_LABEL,
+                date_start=DATE_START,
+                date_end=DATE_END,
+                date_approx=DATE_APPROX,
+                date_note=DATE_NOTE,
+                provenance=PROVENANCE,
             ).consume()
 
             for verse in verses:
