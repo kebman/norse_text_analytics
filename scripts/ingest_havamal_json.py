@@ -22,10 +22,16 @@ DATE_APPROX = True
 DATE_NOTE = "placeholder; revise later"
 PROVENANCE = "Guðni Jónsson print"
 NORMALIZATION_POLICY = "punct_strip_whitespace_collapse_v0"
-MORPH_ANALYZER = "simple"
+MORPH_ANALYZER = "placeholder"
+MORPH_ANALYZER_VERSION = "0.1"
 MORPH_POS = "UNKNOWN"
 MORPH_CONFIDENCE = 0.0
 MORPH_IS_AMBIGUOUS = False
+MORPH_IS_ACTIVE = True
+ANALYZER_ID = f"{MORPH_ANALYZER}:{MORPH_ANALYZER_VERSION}"
+ANALYZER_NAME = "Placeholder Analyzer"
+ANALYZER_DESCRIPTION = "Bootstrap analyzer for morphology scaffolding."
+ANALYZER_AUTHOR = "norse_text_analytics"
 SURROUNDING_PUNCT = " \t\n\r.,;:!?\"'()[]{}<>«»„“”‘’`´…—-"
 
 
@@ -124,6 +130,22 @@ def ingest(input_path: Path) -> tuple[int, int]:
                 provenance=PROVENANCE,
             ).consume()
 
+            session.run(
+                """
+                MERGE (a:Analyzer {analyzer_id: $analyzer_id})
+                ON CREATE SET a.name = $name,
+                              a.version = $version,
+                              a.description = $description,
+                              a.author = $author,
+                              a.created_at = datetime()
+                """,
+                analyzer_id=ANALYZER_ID,
+                name=ANALYZER_NAME,
+                version=MORPH_ANALYZER_VERSION,
+                description=ANALYZER_DESCRIPTION,
+                author=ANALYZER_AUTHOR,
+            ).consume()
+
             for verse in verses:
                 verse_ref = str(verse["verse"])
 
@@ -176,13 +198,24 @@ def ingest(input_path: Path) -> tuple[int, int]:
                                 SET f.orthography = $orthography,
                                     f.language = $language
                                 MERGE (m:MorphAnalysis {analysis_id: $analysis_id})
-                                SET m.analyzer = $analyzer,
-                                    m.confidence = $confidence,
-                                    m.pos = $pos,
-                                    m.is_ambiguous = $is_ambiguous
+                                ON CREATE SET m.analyzer = $analyzer,
+                                              m.analyzer_version = $analyzer_version,
+                                              m.confidence = $confidence,
+                                              m.pos = $pos,
+                                              m.is_ambiguous = $is_ambiguous,
+                                              m.created_at = datetime(),
+                                              m.supersedes = $supersedes,
+                                              m.is_active = $is_active
+                                MERGE (a:Analyzer {analyzer_id: $analyzer_id})
+                                ON CREATE SET a.name = $analyzer_name,
+                                              a.version = $analyzer_version,
+                                              a.description = $analyzer_description,
+                                              a.author = $analyzer_author,
+                                              a.created_at = datetime()
                                 MERGE (s)-[:HAS_TOKEN]->(t)
                                 MERGE (t)-[:INSTANCE_OF_FORM]->(f)
                                 MERGE (t)-[:HAS_ANALYSIS]->(m)
+                                MERGE (m)-[:PRODUCED_BY]->(a)
                                 """,
                                 segment_id=segment_id,
                                 token_id=token_id,
@@ -193,10 +226,17 @@ def ingest(input_path: Path) -> tuple[int, int]:
                                 orthography=surface,
                                 language=LANGUAGE,
                                 analysis_id=analysis_id,
+                                analyzer_id=ANALYZER_ID,
                                 analyzer=MORPH_ANALYZER,
+                                analyzer_name=ANALYZER_NAME,
+                                analyzer_version=MORPH_ANALYZER_VERSION,
+                                analyzer_description=ANALYZER_DESCRIPTION,
+                                analyzer_author=ANALYZER_AUTHOR,
                                 confidence=MORPH_CONFIDENCE,
                                 pos=MORPH_POS,
                                 is_ambiguous=MORPH_IS_AMBIGUOUS,
+                                supersedes=None,
+                                is_active=MORPH_IS_ACTIVE,
                             ).consume()
                             token_count += 1
     finally:
