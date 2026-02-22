@@ -1,0 +1,15 @@
+# Glossary
+
+Related docs: [Schema](schema.md), [Invariants](invariants.md), [IDs and References](ids-and-references.md)
+
+- `Token`: one word occurrence in one segment position.
+- `Segment`: ingest unit of text (for Hávamál currently one line).
+- `Edition`: specific textual dataset/version used for ingest.
+- `Witness`: manuscript/attestation context for a work.
+- `Form`: normalized orthographic type for grouping token surfaces.
+- `Lemma`: lexeme-level dictionary entry (headword-level abstraction).
+- `Sense`: meaning-level subdivision of a lemma.
+- `Claim`: reified scholarly assertion with confidence/status.
+- `Source`: bibliographic/source record supporting claims.
+- `Etymon`: etymological origin form/entity.
+- `CognateSet`: grouping of historically related forms/lemmas.
