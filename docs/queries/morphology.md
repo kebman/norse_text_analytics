@@ -2,61 +2,86 @@
 
 Related docs: [Schema](../schema.md), [Invariants](../invariants.md), [Word Lineage](word-lineage.md)
 
-Note: current ingest creates placeholder `MorphAnalysis` nodes with zero features. Feature-based queries are acceptance scaffolding and will return sparse/empty results until real features are populated.
+This page documents the canonical Cypher used by `scripts/report_inflections.py`.
 
-## 1) Counts by case/number/gender for a lemma in a date range
+Current Sprint-1 caveat: ingest creates placeholder `MorphAnalysis` nodes with zero features. Feature queries are still valid but may return empty/`NA`-only rows until real features are attached.
+
+## Script-backed query A: top observed surfaces for a lemma
+
+With date filters (`--from-year` and/or `--to-year` provided):
 
 ```cypher
-MATCH (m:MorphAnalysis)-[:ANALYZES_AS]->(l:Lemma {lemma_id: $lemma_id})
-MATCH (t:Token)-[:HAS_ANALYSIS]->(m)
+MATCH (l:Lemma {lemma_id: $lemma_id})<-[:REALIZES]-(f:Form)<-[:INSTANCE_OF_FORM]-(t:Token)
 MATCH (s:Segment)-[:HAS_TOKEN]->(t)
 MATCH (e:Edition)-[:HAS_SEGMENT]->(s)
-WHERE ($date_start IS NULL OR COALESCE(e.date_end, e.date_start, 999999) >= $date_start)
-  AND ($date_end IS NULL OR COALESCE(e.date_start, e.date_end, -999999) <= $date_end)
-OPTIONAL MATCH (m)-[:HAS_FEATURE]->(f_case:Feature {key: 'case'})
-OPTIONAL MATCH (m)-[:HAS_FEATURE]->(f_number:Feature {key: 'number'})
-OPTIONAL MATCH (m)-[:HAS_FEATURE]->(f_gender:Feature {key: 'gender'})
-RETURN COALESCE(f_case.value, 'NA') AS case,
-       COALESCE(f_number.value, 'NA') AS number,
-       COALESCE(f_gender.value, 'NA') AS gender,
-       count(*) AS token_count
-ORDER BY token_count DESC, case, number, gender;
+WHERE ($from_year IS NULL OR COALESCE(e.date_end, e.date_start, 999999) >= $from_year)
+  AND ($to_year IS NULL OR COALESCE(e.date_start, e.date_end, -999999) <= $to_year)
+  AND ($source_like IS NULL OR toLower(COALESCE(e.source_label, "")) CONTAINS toLower($source_like))
+RETURN t.surface AS surface,
+       count(*) AS freq
+ORDER BY freq DESC, surface ASC
+LIMIT $limit
 ```
 
-## 2) Example attestations for a form or lemma
+Date fallback behavior (when neither `--from-year` nor `--to-year` is set):
 
 ```cypher
-MATCH (t:Token)-[:INSTANCE_OF_FORM]->(f:Form)
-OPTIONAL MATCH (f)-[:REALIZES]->(l:Lemma)
-OPTIONAL MATCH (t)-[:HAS_ANALYSIS]->(m:MorphAnalysis)
+MATCH (l:Lemma {lemma_id: $lemma_id})<-[:REALIZES]-(f:Form)<-[:INSTANCE_OF_FORM]-(t:Token)
 MATCH (s:Segment)-[:HAS_TOKEN]->(t)
 MATCH (e:Edition)-[:HAS_SEGMENT]->(s)
-WHERE ($form_id IS NULL OR f.form_id = $form_id)
-  AND ($lemma_id IS NULL OR l.lemma_id = $lemma_id)
-RETURN e.source_label,
-       e.date_start,
-       e.date_end,
-       s.ref,
-       t.surface,
-       t.normalized,
-       f.orthography AS form,
-       l.lemma_id AS lemma_id,
-       m.analyzer AS analyzer,
-       m.pos AS pos
-ORDER BY COALESCE(e.date_start, 999999), e.source_label, s.ref, t.position
-LIMIT 100;
+WHERE ($source_like IS NULL OR toLower(COALESCE(e.source_label, "")) CONTAINS toLower($source_like))
+RETURN COALESCE(e.source_label, "(unknown source)") AS source_label,
+       e.date_start AS date_start,
+       e.date_end AS date_end,
+       t.surface AS surface,
+       count(*) AS freq
+ORDER BY source_label ASC, freq DESC, surface ASC
+LIMIT $limit
 ```
 
-## 3) Distinct feature values for a lemma in a period
+## Script-backed query B: counts by morphology features
 
 ```cypher
-MATCH (m:MorphAnalysis)-[:ANALYZES_AS]->(l:Lemma {lemma_id: $lemma_id})
-MATCH (t:Token)-[:HAS_ANALYSIS]->(m)
+MATCH (l:Lemma {lemma_id: $lemma_id})<-[:ANALYZES_AS]-(m:MorphAnalysis)<-[:HAS_ANALYSIS]-(t:Token)
 MATCH (s:Segment)-[:HAS_TOKEN]->(t)
 MATCH (e:Edition)-[:HAS_SEGMENT]->(s)
-MATCH (m)-[:HAS_FEATURE]->(f:Feature)
-WHERE ($date_start IS NULL OR COALESCE(e.date_end, e.date_start, 999999) >= $date_start)
-  AND ($date_end IS NULL OR COALESCE(e.date_start, e.date_end, -999999) <= $date_end)
-RETURN f.key, collect(DISTINCT f.value) AS values
-ORDER BY f.key;
+WHERE ($from_year IS NULL OR COALESCE(e.date_end, e.date_start, 999999) >= $from_year)
+  AND ($to_year IS NULL OR COALESCE(e.date_start, e.date_end, -999999) <= $to_year)
+  AND ($source_like IS NULL OR toLower(COALESCE(e.source_label, "")) CONTAINS toLower($source_like))
+OPTIONAL MATCH (m)-[:HAS_FEATURE]->(f_case:Feature {key: "case"})
+OPTIONAL MATCH (m)-[:HAS_FEATURE]->(f_number:Feature {key: "number"})
+OPTIONAL MATCH (m)-[:HAS_FEATURE]->(f_gender:Feature {key: "gender"})
+RETURN COALESCE(f_case.value, "NA") AS case,
+       COALESCE(f_number.value, "NA") AS number,
+       COALESCE(f_gender.value, "NA") AS gender,
+       count(*) AS freq
+ORDER BY freq DESC, case, number, gender
+LIMIT $limit
+```
+
+## Script-backed query C: example attestations
+
+```cypher
+MATCH (l:Lemma {lemma_id: $lemma_id})<-[:REALIZES]-(f:Form)<-[:INSTANCE_OF_FORM]-(t:Token)
+MATCH (s:Segment)-[:HAS_TOKEN]->(t)
+MATCH (e:Edition)-[:HAS_SEGMENT]->(s)
+WHERE ($from_year IS NULL OR COALESCE(e.date_end, e.date_start, 999999) >= $from_year)
+  AND ($to_year IS NULL OR COALESCE(e.date_start, e.date_end, -999999) <= $to_year)
+  AND ($source_like IS NULL OR toLower(COALESCE(e.source_label, "")) CONTAINS toLower($source_like))
+RETURN COALESCE(e.source_label, "(unknown source)") AS source_label,
+       e.date_start AS date_start,
+       e.date_end AS date_end,
+       s.ref AS segment_ref,
+       t.surface AS surface,
+       s.text AS segment_text
+ORDER BY COALESCE(e.date_start, 999999), source_label, segment_ref, t.position
+LIMIT $limit
+```
+
+## Script usage
+
+```bash
+python3 scripts/report_inflections.py --lemma-id non:Nóregr
+python3 scripts/report_inflections.py --lemma-id non:Nóregr --from-year 900 --to-year 1200
+python3 scripts/report_inflections.py --lemma-id non:Nóregr --source-like Hávamál --limit 10
 ```
