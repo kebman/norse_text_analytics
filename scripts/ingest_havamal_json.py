@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import sys
 from pathlib import Path
 
@@ -10,6 +9,10 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
+
+from nta.ingest.text import NORMALIZATION_POLICY_V0
+from nta.ingest.text import normalize_v0
+from nta.ingest.text import tokenize_v0
 
 
 WORK_ID = "havamal"
@@ -21,7 +24,7 @@ DATE_END = 1100
 DATE_APPROX = True
 DATE_NOTE = "placeholder; revise later"
 PROVENANCE = "Guðni Jónsson print"
-NORMALIZATION_POLICY = "punct_strip_whitespace_collapse_v0"
+NORMALIZATION_POLICY = NORMALIZATION_POLICY_V0
 MORPH_ANALYZER = "placeholder"
 MORPH_ANALYZER_VERSION = "0.1"
 MORPH_POS = "UNKNOWN"
@@ -32,7 +35,6 @@ ANALYZER_ID = f"{MORPH_ANALYZER}:{MORPH_ANALYZER_VERSION}"
 ANALYZER_NAME = "Placeholder Analyzer"
 ANALYZER_DESCRIPTION = "Bootstrap analyzer for morphology scaffolding."
 ANALYZER_AUTHOR = "norse_text_analytics"
-SURROUNDING_PUNCT = " \t\n\r.,;:!?\"'()[]{}<>«»„“”‘’`´…—-"
 
 
 def parse_args() -> argparse.Namespace:
@@ -57,23 +59,6 @@ def resolve_input_path(explicit_path: str | None) -> Path:
     if default_path.exists():
         return default_path
     raise FileNotFoundError(f"Input file not found: {default_path}")
-
-
-def normalize(surface: str) -> str:
-    # v0 normalization: strip surrounding punctuation and collapse whitespace.
-    normalized = surface.strip(SURROUNDING_PUNCT)
-    normalized = re.sub(r"\s+", " ", normalized).strip()
-    return normalized
-
-
-def tokenize(line: str) -> list[str]:
-    # Split on whitespace, strip punctuation from ends, skip empties.
-    tokens: list[str] = []
-    for raw in line.split():
-        cleaned = raw.strip(SURROUNDING_PUNCT)
-        if cleaned:
-            tokens.append(cleaned)
-    return tokens
 
 
 def ingest(input_path: Path) -> tuple[int, int]:
@@ -181,8 +166,8 @@ def ingest(input_path: Path) -> tuple[int, int]:
                         ).consume()
                         segment_count += 1
 
-                        for token_index, surface in enumerate(tokenize(text)):
-                            normalized = normalize(surface)
+                        for token_index, surface in enumerate(tokenize_v0(text)):
+                            normalized = normalize_v0(surface)
                             token_id = f"{segment_id}:t{token_index}"
                             form_id = f"non:{surface}"
                             analysis_id = f"{token_id}:{MORPH_ANALYZER}"

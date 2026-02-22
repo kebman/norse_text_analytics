@@ -13,6 +13,9 @@ if str(REPO_ROOT) not in sys.path:
 from nta.graph.db import Neo4jConfig
 from nta.graph.db import get_driver
 from nta.graph.repo import Neo4jRepository
+from nta.ingest.text import NORMALIZATION_POLICY_V0
+from nta.ingest.text import normalize_v0
+from nta.ingest.text import tokenize_v0
 from nta.model.types import Edition
 from nta.model.types import Form
 from nta.model.types import Lemma
@@ -21,8 +24,7 @@ from nta.model.types import Token
 from nta.model.types import Work
 
 
-SURROUNDING_PUNCT = " \t\n\r.,;:!?\"'()[]{}<>«»„“”‘’`´…—-"
-NORMALIZATION_POLICY = "punct_strip_whitespace_collapse_v0"
+NORMALIZATION_POLICY = NORMALIZATION_POLICY_V0
 
 
 def parse_args() -> argparse.Namespace:
@@ -55,22 +57,6 @@ def parse_args() -> argparse.Namespace:
         help="Segmentation mode: line (default) or paragraph.",
     )
     return parser.parse_args()
-
-
-def normalize(surface: str) -> str:
-    # Matches current v0 normalization in scripts/ingest_havamal_json.py.
-    normalized = surface.strip(SURROUNDING_PUNCT)
-    normalized = re.sub(r"\s+", " ", normalized).strip()
-    return normalized
-
-
-def tokenize(line: str) -> list[str]:
-    tokens: list[str] = []
-    for raw in line.split():
-        cleaned = raw.strip(SURROUNDING_PUNCT)
-        if cleaned:
-            tokens.append(cleaned)
-    return tokens
 
 
 def split_segments(text: str, mode: str) -> list[str]:
@@ -149,9 +135,9 @@ def ingest(args: argparse.Namespace) -> tuple[int, int]:
             repo.link_edition_segment(args.edition_id, segment_id)
             segment_count += 1
 
-            for token_index, surface in enumerate(tokenize(segment_text)):
+            for token_index, surface in enumerate(tokenize_v0(segment_text)):
                 token_id = f"{segment_id}:t{token_index}"
-                normalized = normalize(surface)
+                normalized = normalize_v0(surface)
                 form_id = f"{args.language_stage}:{surface}"
 
                 token = Token(
