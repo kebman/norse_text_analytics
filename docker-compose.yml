@@ -1,12 +1,19 @@
 services:
   neo4j:
-    image: neo4j:5
+    image: neo4j:${NEO4J_IMAGE_TAG:-5.26.2}
+    restart: unless-stopped
     ports:
       - "7474:7474"
       - "7687:7687"
     environment:
       - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD}
       - NEO4J_PLUGINS=["apoc"]
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -a bolt://localhost:7687 -u neo4j -p \"$NEO4J_PASSWORD\" \"RETURN 1\" >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
     volumes:
       - neo4j_data:/data
       - neo4j_logs:/logs
