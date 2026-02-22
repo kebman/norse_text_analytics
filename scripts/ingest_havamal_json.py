@@ -22,6 +22,10 @@ DATE_APPROX = True
 DATE_NOTE = "placeholder; revise later"
 PROVENANCE = "Guðni Jónsson print"
 NORMALIZATION_POLICY = "punct_strip_whitespace_collapse_v0"
+MORPH_ANALYZER = "simple"
+MORPH_POS = "UNKNOWN"
+MORPH_CONFIDENCE = 0.0
+MORPH_IS_AMBIGUOUS = False
 SURROUNDING_PUNCT = " \t\n\r.,;:!?\"'()[]{}<>«»„“”‘’`´…—-"
 
 
@@ -159,6 +163,7 @@ def ingest(input_path: Path) -> tuple[int, int]:
                             normalized = normalize(surface)
                             token_id = f"{segment_id}:t{token_index}"
                             form_id = f"non:{surface}"
+                            analysis_id = f"{token_id}:{MORPH_ANALYZER}"
 
                             session.run(
                                 """
@@ -170,8 +175,14 @@ def ingest(input_path: Path) -> tuple[int, int]:
                                 MERGE (f:Form {form_id: $form_id})
                                 SET f.orthography = $orthography,
                                     f.language = $language
+                                MERGE (m:MorphAnalysis {analysis_id: $analysis_id})
+                                SET m.analyzer = $analyzer,
+                                    m.confidence = $confidence,
+                                    m.pos = $pos,
+                                    m.is_ambiguous = $is_ambiguous
                                 MERGE (s)-[:HAS_TOKEN]->(t)
                                 MERGE (t)-[:INSTANCE_OF_FORM]->(f)
+                                MERGE (t)-[:HAS_ANALYSIS]->(m)
                                 """,
                                 segment_id=segment_id,
                                 token_id=token_id,
@@ -181,6 +192,11 @@ def ingest(input_path: Path) -> tuple[int, int]:
                                 form_id=form_id,
                                 orthography=surface,
                                 language=LANGUAGE,
+                                analysis_id=analysis_id,
+                                analyzer=MORPH_ANALYZER,
+                                confidence=MORPH_CONFIDENCE,
+                                pos=MORPH_POS,
+                                is_ambiguous=MORPH_IS_AMBIGUOUS,
                             ).consume()
                             token_count += 1
     finally:
