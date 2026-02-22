@@ -4,6 +4,16 @@ Some programmatic treatment of Old Norse texts.
 
 Just a hobby project. Perhaps it may also be of use to others.
 
+## Setup
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+pip install -e .
+python3 scripts/apply_schema.py
+```
+
 ### `bin/scrapeHávamál.py`
 
 Scrape the Old Norse version of Hávamál from Heimskringla.no,  and print the verses in the terminal.
