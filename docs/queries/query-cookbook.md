@@ -1,6 +1,6 @@
 # Query Cookbook
 
-Related docs: [Schema](../schema.md), [Word Lineage](word-lineage.md), [Morphology Queries](morphology.md), [Invariants](../invariants.md)
+Related docs: [Schema](../schema.md), [Word Lineage](word-lineage.md), [Morphology Queries](morphology.md), [Invariants](../invariants.md), [Query Acceptance Tests](../query-acceptance-tests.md)
 
 ## Graph counts
 
