@@ -9,8 +9,10 @@ from neo4j import Driver
 from nta.graph.db import apply_schema as apply_schema_statements
 from nta.model.types import Claim
 from nta.model.types import Edition
+from nta.model.types import Feature
 from nta.model.types import Form
 from nta.model.types import Lemma
+from nta.model.types import MorphAnalysis
 from nta.model.types import Segment
 from nta.model.types import Source
 from nta.model.types import Token
@@ -102,6 +104,33 @@ class Neo4jRepository:
             headword=lemma.headword,
             language=lemma.language,
             pos=lemma.pos,
+        )
+
+    def upsert_morph_analysis(self, analysis: MorphAnalysis) -> None:
+        self._execute(
+            """
+            MERGE (m:MorphAnalysis {analysis_id: $analysis_id})
+            SET m.analyzer = $analyzer,
+                m.confidence = $confidence,
+                m.pos = $pos,
+                m.is_ambiguous = $is_ambiguous
+            """,
+            analysis_id=analysis.analysis_id,
+            analyzer=analysis.analyzer,
+            confidence=analysis.confidence,
+            pos=analysis.pos,
+            is_ambiguous=analysis.is_ambiguous,
+        )
+
+    def upsert_feature(self, feature: Feature) -> None:
+        self._execute(
+            """
+            MERGE (f:Feature {key: $key, value: $value})
+            SET f.lemma_guess = $lemma_guess
+            """,
+            key=feature.key,
+            value=feature.value,
+            lemma_guess=feature.lemma_guess,
         )
 
     def upsert_claim(self, claim: Claim) -> None:
@@ -213,6 +242,40 @@ class Neo4jRepository:
             """,
             token_id=token_id,
             form_id=form_id,
+        )
+
+    def link_token_analysis(self, token_id: str, analysis_id: str) -> None:
+        self._execute(
+            """
+            MERGE (t:Token {token_id: $token_id})
+            MERGE (m:MorphAnalysis {analysis_id: $analysis_id})
+            MERGE (t)-[:HAS_ANALYSIS]->(m)
+            """,
+            token_id=token_id,
+            analysis_id=analysis_id,
+        )
+
+    def link_analysis_feature(self, analysis_id: str, key: str, value: str) -> None:
+        self._execute(
+            """
+            MERGE (m:MorphAnalysis {analysis_id: $analysis_id})
+            MERGE (f:Feature {key: $key, value: $value})
+            MERGE (m)-[:HAS_FEATURE]->(f)
+            """,
+            analysis_id=analysis_id,
+            key=key,
+            value=value,
+        )
+
+    def link_analysis_lemma(self, analysis_id: str, lemma_id: str) -> None:
+        self._execute(
+            """
+            MERGE (m:MorphAnalysis {analysis_id: $analysis_id})
+            MERGE (l:Lemma {lemma_id: $lemma_id})
+            MERGE (m)-[:ANALYZES_AS]->(l)
+            """,
+            analysis_id=analysis_id,
+            lemma_id=lemma_id,
         )
 
     def link_form_lemma(self, form_id: str, lemma_id: str) -> None:
