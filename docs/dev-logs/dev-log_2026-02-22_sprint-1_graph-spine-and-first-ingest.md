@@ -186,3 +186,31 @@ RETURN id, c;
 3. Tighten claim/source examples into reproducible fixtures with deterministic assertions.
 4. Expand alignment demo from first stanza to controlled multi-stanza subset.
 5. Prepare Sprint 2 handoff notes: true lemmatization strategy + token-level alignment design.
+
+## Addendum – Language Stage Corrections & ISO Clarification
+
+### Problem observed
+- `language_stage` vocabulary mixed internal stage codes with modern standard language codes without explicit interoperability guidance.
+- Historical date boundaries in the stage table had a few imprecise anchors (notably Old Icelandic start, Old Danish end, Faroese start), which could cause drift in temporal queries.
+
+### Corrective actions applied
+- Clarified that `on`, `own`, `oen`, `ois`, `onr`, `oda`, `osw`, `mnr`, `mda`, `msw` are project-internal stage codes (not ISO 639 codes).
+- Added explicit interoperability notes and mapping guidance:
+  - Old Norse stage group maps to ISO 639-3 `non`.
+  - Modern codes `nb`, `nn`, `sv`, `da`, `fo`, `isl` map to themselves.
+- Corrected/anchored boundaries:
+  - `ois`: c. `900–1350` with manuscript-heavy attestation window noted separately.
+  - `oda`: end boundary adjusted to c. `1525`.
+  - `fo`: start anchored to `1846` orthography standardization / c. `1850`.
+  - Minor cleanup to West Norse split alignment where applied.
+- Added a short boundary-criteria note clarifying that the table intentionally mixes linguistic, attestation, orthographic, and political/official anchors.
+
+### Architectural significance
+- Reduces schema-level ambiguity between stage taxonomy and external interoperability identifiers.
+- Prevents silent downstream drift in adapters and query filters by making code semantics explicit.
+- Lowers future schema debt if/when `LanguageStage` nodes are introduced, because mappings are now declared up front.
+
+### Query/index/tooling implications
+- Existing indexes/constraints are unaffected (no property renames introduced).
+- Branching and temporal queries should prefer `language_stage` for stage filtering and use mapping guidance when integrating external datasets.
+- NLP/adapter tooling can safely emit internal stage codes while still exporting interoperable ISO mappings for downstream systems.
