@@ -1,6 +1,6 @@
 # Ingest Overview
 
-Related docs: [Adapter Contract](adapter-contract.md), [Raw Sources and Adapters](raw-source-and-adapters.md), [Plaintext Adapter](plaintext-adapter.md), [Hávamál Notes](havamal-source-notes.md), [Schema](../schema.md), [Invariants](../invariants.md)
+Related docs: [Adapter Contract](adapter-contract.md), [Auto-Structuring](auto-structuring.md), [Raw Sources and Adapters](raw-source-and-adapters.md), [Plaintext Adapter](plaintext-adapter.md), [Hávamál Notes](havamal-source-notes.md), [Schema](../schema.md), [Invariants](../invariants.md)
 
 ## Pipeline Overview
 
