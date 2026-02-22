@@ -24,6 +24,11 @@ Related docs: [Ingest Overview](ingest-overview.md), [Adapter Contract](adapter-
 - `Edition`
   - `edition_id = "havamal_gudni_jonsson_print"`
   - properties include: `title`, `cover`, `writer`, `language="Old Norse"`
+  - dating/source metadata currently set as placeholders:
+    - `source_label = "Sæmundar-Edda: Hávamál"`
+    - `date_start = 900`, `date_end = 1100`, `date_approx = true`
+    - `date_note = "placeholder; revise later"`
+    - `provenance = "Guðni Jónsson print"`
 - `Segment`
   - one node per line
   - `segment_id = <edition_id>:v<verse>:s<strophe>:l<line_index>`
