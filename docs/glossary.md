@@ -8,6 +8,8 @@ Related docs: [Schema](schema.md), [Invariants](invariants.md), [IDs and Referen
 - `Witness`: manuscript/attestation context for a work; planned date/place granularity beyond edition-level dating.
 - `Form`: normalized orthographic type for grouping token surfaces.
 - `Lemma`: lexeme-level dictionary entry (headword-level abstraction).
+- `MorphAnalysis`: analyzer-specific grammatical interpretation attached to a token.
+- `Feature`: one categorical morphology feature/value pair (example: `case=Nom`).
 - `Sense`: meaning-level subdivision of a lemma.
 - `Claim`: reified scholarly assertion with confidence/status.
 - `Source`: bibliographic/source record supporting claims.

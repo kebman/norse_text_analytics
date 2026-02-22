@@ -12,7 +12,8 @@ Related docs: [Glossary](glossary.md), [Invariants](invariants.md), [IDs and Ref
 - `Form`: `form_id`, `orthography`, `language`
 - `Lemma`: `lemma_id`, `headword`, `language`, `pos`
 - `Sense`: `sense_id`, `gloss`, `definition`
-- `MorphAnalysis`: `analysis_id`, `tagset`, `features`, `analyzer`
+- `MorphAnalysis`: `analysis_id`, `analyzer`, `confidence`, `pos`, `is_ambiguous`
+- `Feature`: `key`, `value`, `lemma_guess`
 - `Etymon`: `etymon_id`, `form`, `language`, `period`
 - `CognateSet`: `set_id`, `label`
 - `Claim`: `claim_id`, `type`, `statement`, `confidence`, `status`
@@ -25,7 +26,10 @@ Related docs: [Glossary](glossary.md), [Invariants](invariants.md), [IDs and Ref
 - `(:Edition)-[:HAS_SEGMENT]->(:Segment)`
 - `(:Segment)-[:HAS_TOKEN]->(:Token)`
 - `(:Token)-[:INSTANCE_OF_FORM]->(:Form)`
+- `(:Token)-[:HAS_ANALYSIS]->(:MorphAnalysis)`
 - `(:Form)-[:REALIZES]->(:Lemma)`
+- `(:MorphAnalysis)-[:ANALYZES_AS]->(:Lemma)` (optional)
+- `(:MorphAnalysis)-[:HAS_FEATURE]->(:Feature)`
 - `(:Form)-[:ORTHOGRAPHIC_VARIANT_OF {type}]->(:Form)`
 - `(:Token)-[:NORMALIZED_TO {policy}]->(:Form)`
 - `(:Claim)-[:SUPPORTED_BY]->(:Source)`
@@ -41,14 +45,15 @@ Related docs: [Glossary](glossary.md), [Invariants](invariants.md), [IDs and Ref
 - `Token` is immutable textual evidence at a location.
 - `Form` groups orthographic/normalization variants across tokens.
 - `Lemma` is lexeme abstraction and can later diverge from `Form` when true lemmatization is added.
+- `MorphAnalysis` is an interpretation layer attached to tokens; multiple analyses can coexist for different analyzers.
 
 ## MVP vs Planned Full Model
 
 ### MVP (Sprint 1 reality)
 
 - Active ingest: `Work`, `Edition`, `Segment`, `Token`, `Form`
-- Temporary support in code: `Lemma` (placeholder mapping)
-- Core edges: `HAS_EDITION`, `HAS_SEGMENT`, `HAS_TOKEN`, `INSTANCE_OF_FORM`
+- Temporary support in code: `Lemma` (placeholder mapping), `MorphAnalysis` (placeholder analyzer)
+- Core edges: `HAS_EDITION`, `HAS_SEGMENT`, `HAS_TOKEN`, `INSTANCE_OF_FORM`, `HAS_ANALYSIS`
 
 ### Planned full model
 

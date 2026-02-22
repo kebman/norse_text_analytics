@@ -10,6 +10,7 @@ Related docs: [Invariants](invariants.md), [Schema](schema.md), [Hávamál Sourc
 - `token_id`: deterministic id derived from segment + token index
 - `form_id`: deterministic language+orthography id, currently example `non:<surface>` in Sprint 1 ingest
 - `lemma_id`: deterministic language+headword id (placeholder strategy currently)
+- `analysis_id`: deterministic morphology analysis id, `analysis_id = <token_id>:<analyzer>`
 - `claim_id`: deterministic hash/key over claim type + target + statement + source
 - `source_id`: deterministic key from citekey/reference identity
 
