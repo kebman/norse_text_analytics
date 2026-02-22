@@ -86,6 +86,22 @@ CREATE INDEX claim_type_idx IF NOT EXISTS
 FOR (c:Claim)
 ON (c.type);
 
+CREATE INDEX edition_language_idx IF NOT EXISTS
+FOR (e:Edition)
+ON (e.language);
+
+CREATE INDEX edition_date_start_idx IF NOT EXISTS
+FOR (e:Edition)
+ON (e.date_start);
+
+CREATE INDEX edition_date_end_idx IF NOT EXISTS
+FOR (e:Edition)
+ON (e.date_end);
+
+CREATE INDEX edition_source_label_idx IF NOT EXISTS
+FOR (e:Edition)
+ON (e.source_label);
+
 CREATE INDEX aligned_to_method_idx IF NOT EXISTS
 FOR ()-[r:ALIGNED_TO]-()
 ON (r.method);
