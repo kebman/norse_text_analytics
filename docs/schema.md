@@ -5,8 +5,8 @@ Related docs: [Glossary](glossary.md), [Invariants](invariants.md), [IDs and Ref
 ## Node Types and Key Properties
 
 - `Work`: `work_id`, `title`
-- `Witness`: `witness_id`, `siglum`, `description`
-- `Edition`: `edition_id`, `title`, `cover`, `writer`, `language`, `version`
+- `Witness` (planned): `witness_id`, `type`, `place`, `date_start`, `date_end`, `date_note`, `siglum`, `description`
+- `Edition` (canonical dating layer in Sprint 1): `edition_id`, `title`, `language`, `normalization_policy`, `source_label`, `date_start`, `date_end`, `date_approx`, `date_note`, `provenance`, `cover`, `writer`, `version`
 - `Segment`: `segment_id`, `verse`, `strophe`, `line_index`, `ref`, `text`, `position`
 - `Token`: `token_id`, `surface`, `normalized`, `position`
 - `Form`: `form_id`, `orthography`, `language`
@@ -55,3 +55,11 @@ Related docs: [Glossary](glossary.md), [Invariants](invariants.md), [IDs and Ref
 - Add robust use of: `Witness`, `Sense`, `MorphAnalysis`, `Etymon`, `CognateSet`, `Claim`, `Source`
 - Expand claim-backed scholarship workflows and lineage queries
 - Add token-level alignment derived from segment alignment
+
+## Dating Model (Current Policy)
+
+- Canonical temporal fields live on `Edition` for now.
+- `date_start`/`date_end` are integer years (negative allowed for BCE).
+- `date_approx` should be `true` when ranges are estimated placeholders.
+- `source_label` is required for human-readable fallback sorting/filtering when dates are missing.
+- `Witness` date fields are planned and may later override or refine edition-level dating for manuscript-specific queries.

@@ -4,8 +4,8 @@ Related docs: [Schema](schema.md), [Invariants](invariants.md), [IDs and Referen
 
 - `Token`: one word occurrence in one segment position.
 - `Segment`: ingest unit of text (for Hávamál currently one line).
-- `Edition`: specific textual dataset/version used for ingest.
-- `Witness`: manuscript/attestation context for a work.
+- `Edition`: specific textual dataset/version used for ingest; current canonical place for source dating metadata.
+- `Witness`: manuscript/attestation context for a work; planned date/place granularity beyond edition-level dating.
 - `Form`: normalized orthographic type for grouping token surfaces.
 - `Lemma`: lexeme-level dictionary entry (headword-level abstraction).
 - `Sense`: meaning-level subdivision of a lemma.
