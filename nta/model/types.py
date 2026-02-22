@@ -57,6 +57,10 @@ class MorphAnalysis:
     confidence: float
     pos: str
     is_ambiguous: bool
+    analyzer_version: str | None = None
+    created_at: str | None = None
+    supersedes: str | None = None
+    is_active: bool = True
 
 
 @dataclass(slots=True, frozen=True)
