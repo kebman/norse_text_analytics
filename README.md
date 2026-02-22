@@ -26,6 +26,7 @@ Run from repo root.
 docker compose up -d
 cp .env.example .env
 # edit .env and set NEO4J_PASSWORD before running scripts
+# Neo4j image is pinned via NEO4J_IMAGE_TAG (default 5.26.2); bump intentionally in .env when upgrading.
 
 python3 -m venv .venv
 source .venv/bin/activate
@@ -34,6 +35,13 @@ pip install -e .
 
 python3 scripts/apply_schema.py
 python3 scripts/ingest_havamal_json.py
+```
+
+Run tests:
+
+```bash
+pip install -e '.[dev]'
+pytest -q
 ```
 
 Sanity check in Neo4j Browser (`http://localhost:7474`) or `cypher-shell`:
