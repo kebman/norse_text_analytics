@@ -1,0 +1,1 @@
+"""Norse Text Analytics package."""
