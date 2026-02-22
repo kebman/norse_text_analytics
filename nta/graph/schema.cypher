@@ -26,6 +26,14 @@ CREATE CONSTRAINT lemma_lemma_id_unique IF NOT EXISTS
 FOR (l:Lemma)
 REQUIRE l.lemma_id IS UNIQUE;
 
+CREATE CONSTRAINT lemma_headword_required IF NOT EXISTS
+FOR (l:Lemma)
+REQUIRE l.headword IS NOT NULL;
+
+CREATE CONSTRAINT lemma_language_required IF NOT EXISTS
+FOR (l:Lemma)
+REQUIRE l.language IS NOT NULL;
+
 CREATE CONSTRAINT witness_witness_id_unique IF NOT EXISTS
 FOR (w:Witness)
 REQUIRE w.witness_id IS UNIQUE;
@@ -73,6 +81,10 @@ ON (f.orthography);
 CREATE INDEX lemma_headword_idx IF NOT EXISTS
 FOR (l:Lemma)
 ON (l.headword);
+
+CREATE INDEX lemma_language_idx IF NOT EXISTS
+FOR (l:Lemma)
+ON (l.language);
 
 CREATE INDEX segment_ref_idx IF NOT EXISTS
 FOR (s:Segment)
