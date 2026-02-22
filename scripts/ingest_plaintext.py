@@ -15,6 +15,7 @@ from nta.graph.db import get_driver
 from nta.graph.repo import Neo4jRepository
 from nta.model.types import Edition
 from nta.model.types import Form
+from nta.model.types import Lemma
 from nta.model.types import Segment
 from nta.model.types import Token
 from nta.model.types import Work
@@ -47,6 +48,12 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Optional Edition.date_end year.",
     )
+    parser.add_argument(
+        "--segment",
+        choices=("line", "paragraph"),
+        default="line",
+        help="Segmentation mode: line (default) or paragraph.",
+    )
     return parser.parse_args()
 
 
@@ -66,13 +73,19 @@ def tokenize(line: str) -> list[str]:
     return tokens
 
 
-def iter_non_empty_lines(text: str) -> list[str]:
-    lines: list[str] = []
-    for line in text.splitlines():
-        stripped = line.strip()
-        if stripped:
-            lines.append(stripped)
-    return lines
+def split_segments(text: str, mode: str) -> list[str]:
+    if mode == "line":
+        segments: list[str] = []
+        for line in text.splitlines():
+            stripped = line.strip()
+            if stripped:
+                segments.append(stripped)
+        return segments
+
+    normalized_newlines = text.replace("\r\n", "\n").replace("\r", "\n")
+    raw_paragraphs = re.split(r"\n\s*\n+", normalized_newlines)
+    paragraphs = [chunk.strip() for chunk in raw_paragraphs if chunk.strip()]
+    return paragraphs
 
 
 def ingest(args: argparse.Namespace) -> tuple[int, int]:
@@ -81,7 +94,7 @@ def ingest(args: argparse.Namespace) -> tuple[int, int]:
         raise FileNotFoundError(f"Input file not found: {input_path}")
 
     text = input_path.read_text(encoding="utf-8")
-    lines = iter_non_empty_lines(text)
+    segments = split_segments(text, args.segment)
 
     config = Neo4jConfig.from_env()
     driver = get_driver(config)
@@ -111,7 +124,8 @@ def ingest(args: argparse.Namespace) -> tuple[int, int]:
                     e.language_stage = $language_stage,
                     e.date_start = $date_start,
                     e.date_end = $date_end,
-                    e.normalization_policy = $normalization_policy
+                    e.normalization_policy = $normalization_policy,
+                    e.segment_mode = $segment_mode
                 """,
                 edition_id=args.edition_id,
                 source_label=args.source_label,
@@ -119,14 +133,15 @@ def ingest(args: argparse.Namespace) -> tuple[int, int]:
                 date_start=args.date_start,
                 date_end=args.date_end,
                 normalization_policy=NORMALIZATION_POLICY,
+                segment_mode=args.segment,
             ).consume()
 
-        for ordinal, line in enumerate(lines, start=1):
-            segment_id = f"{args.edition_id}:l{ordinal}"
+        for ordinal, segment_text in enumerate(segments, start=1):
+            segment_id = f"{args.edition_id}:seg{ordinal}"
             segment = Segment(
                 segment_id=segment_id,
                 edition_id=args.edition_id,
-                text=line,
+                text=segment_text,
                 position=ordinal,
                 ref=str(ordinal),
             )
@@ -134,7 +149,7 @@ def ingest(args: argparse.Namespace) -> tuple[int, int]:
             repo.link_edition_segment(args.edition_id, segment_id)
             segment_count += 1
 
-            for token_index, surface in enumerate(tokenize(line)):
+            for token_index, surface in enumerate(tokenize(segment_text)):
                 token_id = f"{segment_id}:t{token_index}"
                 normalized = normalize(surface)
                 form_id = f"{args.language_stage}:{surface}"
@@ -153,6 +168,17 @@ def ingest(args: argparse.Namespace) -> tuple[int, int]:
                 )
                 repo.upsert_token_and_form(token=token, form=form)
                 repo.link_segment_token(segment_id=segment_id, token_id=token_id)
+
+                # Temporary 1:1 mapping: Form and Lemma share the same key/headword.
+                lemma = Lemma(
+                    lemma_id=form_id,
+                    headword=surface,
+                    language=args.language_stage,
+                    pos="UNKNOWN",
+                )
+                repo.upsert_lemma(lemma)
+                repo.link_form_lemma(form_id=form.form_id, lemma_id=lemma.lemma_id)
+
                 token_count += 1
     finally:
         driver.close()
@@ -169,4 +195,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
