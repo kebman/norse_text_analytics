@@ -38,6 +38,10 @@ CREATE CONSTRAINT morph_analysis_id_unique IF NOT EXISTS
 FOR (m:MorphAnalysis)
 REQUIRE m.analysis_id IS UNIQUE;
 
+CREATE CONSTRAINT feature_key_value_unique IF NOT EXISTS
+FOR (f:Feature)
+REQUIRE (f.key, f.value) IS UNIQUE;
+
 CREATE CONSTRAINT etymon_etymon_id_unique IF NOT EXISTS
 FOR (e:Etymon)
 REQUIRE e.etymon_id IS UNIQUE;
@@ -85,6 +89,18 @@ ON (s.citekey);
 CREATE INDEX claim_type_idx IF NOT EXISTS
 FOR (c:Claim)
 ON (c.type);
+
+CREATE INDEX morph_analysis_pos_idx IF NOT EXISTS
+FOR (m:MorphAnalysis)
+ON (m.pos);
+
+CREATE INDEX feature_key_idx IF NOT EXISTS
+FOR (f:Feature)
+ON (f.key);
+
+CREATE INDEX feature_value_idx IF NOT EXISTS
+FOR (f:Feature)
+ON (f.value);
 
 CREATE INDEX edition_language_idx IF NOT EXISTS
 FOR (e:Edition)
